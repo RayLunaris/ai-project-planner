@@ -11,6 +11,7 @@ import {
   PrdContentJson,
 } from "@/lib/prompts/prd-generation";
 import { renderPrdToMarkdown } from "@/lib/markdown/renderer";
+import { extractJson } from "@/lib/utils";
 
 interface RouteParams {
   params: Promise<{ planId: string }>;
@@ -18,26 +19,6 @@ interface RouteParams {
 
 export const maxDuration = 60;
 
-function extractJson(raw: string): unknown {
-  let text = raw.trim();
-  if (text.startsWith("```")) {
-    text = text
-      .replace(/^```(?:json)?\s*\n?/, "")
-      .replace(/\n?```$/, "")
-      .trim();
-  }
-  try {
-    return JSON.parse(text);
-  } catch (initialErr) {
-    const firstBrace = text.indexOf("{");
-    const lastBrace = text.lastIndexOf("}");
-    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-      const jsonCandidate = text.slice(firstBrace, lastBrace + 1);
-      return JSON.parse(jsonCandidate);
-    }
-    throw initialErr;
-  }
-}
 
 export async function POST(req: NextRequest, { params }: RouteParams) {
   try {

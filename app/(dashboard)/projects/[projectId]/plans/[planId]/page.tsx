@@ -111,6 +111,8 @@ export default async function PlanBuilderPage({ params }: PageProps) {
           initialIdea={initialIdea}
           initialAnswers={answers}
           initialVersion={currentVersion}
+          initialSelectedProvider={plan.selectedProvider || "openrouter"}
+          initialSelectedModel={plan.selectedModel || null}
         />
       </main>
     </div>

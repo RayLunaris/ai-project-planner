@@ -104,12 +104,160 @@ export function renderPrdToMarkdown(prd: PrdContentJson): string {
     const dbLines: string[] = [`## 8. Desain Skema Database`];
     prd.databaseSchema.forEach((table) => {
       dbLines.push(`### Tabel: \`${table.table}\``);
-      table.columns.forEach((col) => {
-        dbLines.push(`- \`${col}\``);
-      });
+      if (table.primaryKey) {
+        dbLines.push(`- **Primary Key**: \`${table.primaryKey}\``);
+      }
+      if (table.columns && table.columns.length > 0) {
+        const hasExtraDetails =
+          Boolean(table.primaryKey) ||
+          (table.foreignKeys && table.foreignKeys.length > 0) ||
+          (table.constraints && table.constraints.length > 0);
+
+        if (hasExtraDetails) {
+          dbLines.push(`- **Kolom**:`);
+          table.columns.forEach((col) => {
+            dbLines.push(`  - \`${col}\``);
+          });
+        } else {
+          table.columns.forEach((col) => {
+            dbLines.push(`- \`${col}\``);
+          });
+        }
+      }
+      if (table.foreignKeys && table.foreignKeys.length > 0) {
+        dbLines.push(`- **Foreign Keys**:`);
+        table.foreignKeys.forEach((fk) => {
+          dbLines.push(`  - \`${fk}\``);
+        });
+      }
+      if (table.constraints && table.constraints.length > 0) {
+        dbLines.push(`- **Constraints**:`);
+        table.constraints.forEach((c) => {
+          dbLines.push(`  - \`${c}\``);
+        });
+      }
       dbLines.push("");
     });
     sections.push(dbLines.join("\n"));
+  }
+
+  // 9. Struktur Folder & File Proyek
+  if (prd.folderStructure && prd.folderStructure.length > 0) {
+    const folderLines: string[] = [`## 9. Struktur Folder & File Proyek`];
+    folderLines.push(`| Path File / Folder | Deskripsi |`);
+    folderLines.push(`|:---|:---|`);
+    prd.folderStructure.forEach((item) => {
+      folderLines.push(`| \`${escapeTableCell(item.path)}\` | ${escapeTableCell(item.description || "-")} |`);
+    });
+    sections.push(folderLines.join("\n"));
+  }
+
+  // 10. Spesifikasi API Endpoint
+  if (prd.apiEndpoints && prd.apiEndpoints.length > 0) {
+    const apiLines: string[] = [`## 10. Spesifikasi API Endpoint`];
+    apiLines.push(`| Method | Path Endpoint | Auth | Deskripsi | Request Body | Response |`);
+    apiLines.push(`|:---:|:---|:---:|:---|:---|:---|`);
+    prd.apiEndpoints.forEach((ep) => {
+      const auth = ep.authRequired ? "🔒 Ya" : "🌐 Publik";
+      const req = ep.requestBody ? `\`${escapeTableCell(ep.requestBody)}\`` : "-";
+      const res = ep.responseBody ? `\`${escapeTableCell(ep.responseBody)}\`` : "-";
+      apiLines.push(`| **${escapeTableCell(ep.method)}** | \`${escapeTableCell(ep.path)}\` | ${auth} | ${escapeTableCell(ep.description || "-")} | ${req} | ${res} |`);
+    });
+    sections.push(apiLines.join("\n"));
+  }
+
+  // 11. Spesifikasi Halaman
+  if (prd.pageSpecs && prd.pageSpecs.length > 0) {
+    const pageLines: string[] = [`## 11. Spesifikasi Halaman (Page Specs)`];
+    prd.pageSpecs.forEach((page, idx) => {
+      pageLines.push(`### ${idx + 1}. ${page.name} (\`${page.path}\`)`);
+      if (page.description) {
+        pageLines.push(`${page.description}\n`);
+      }
+      if (page.components && page.components.length > 0) {
+        pageLines.push(`**Komponen Utama:**`);
+        page.components.forEach((c) => {
+          pageLines.push(`- ${c}`);
+        });
+        pageLines.push("");
+      }
+    });
+    sections.push(pageLines.join("\n"));
+  }
+
+  // 12. Aturan Validasi
+  if (prd.validationRules && prd.validationRules.length > 0) {
+    const valLines: string[] = [`## 12. Aturan Validasi (Validation Rules)`];
+    prd.validationRules.forEach((vr) => {
+      valLines.push(`### Entitas / Form: \`${vr.entity}\``);
+      if (vr.rules && vr.rules.length > 0) {
+        vr.rules.forEach((r) => {
+          valLines.push(`- ${r}`);
+        });
+      }
+      valLines.push("");
+    });
+    sections.push(valLines.join("\n"));
+  }
+
+  // 13. Skenario Kasus Batas (Edge Cases)
+  if (prd.edgeCases && prd.edgeCases.length > 0) {
+    const edgeLines: string[] = [`## 13. Skenario Kasus Batas (Edge Cases)`];
+    edgeLines.push(`| No | Skenario Edge Case | Penanganan / Mitigasi |`);
+    edgeLines.push(`|:---:|:---|:---|`);
+    prd.edgeCases.forEach((ec, idx) => {
+      edgeLines.push(`| ${idx + 1} | ${escapeTableCell(ec.scenario)} | ${escapeTableCell(ec.handling)} |`);
+    });
+    sections.push(edgeLines.join("\n"));
+  }
+
+  // 14. Strategi SEO & Metadata
+  if (
+    prd.seoStrategy &&
+    (prd.seoStrategy.metaTitle ||
+      prd.seoStrategy.metaDescription ||
+      (prd.seoStrategy.keywords && prd.seoStrategy.keywords.length > 0) ||
+      prd.seoStrategy.indexingStrategy ||
+      prd.seoStrategy.openGraph)
+  ) {
+    const seoLines: string[] = [`## 14. Strategi SEO & Metadata`];
+    seoLines.push(`| Atribut | Nilai / Konfigurasi |`);
+    seoLines.push(`|:---|:---|`);
+    if (prd.seoStrategy.metaTitle) {
+      seoLines.push(`| **Meta Title** | ${escapeTableCell(prd.seoStrategy.metaTitle)} |`);
+    }
+    if (prd.seoStrategy.metaDescription) {
+      seoLines.push(`| **Meta Description** | ${escapeTableCell(prd.seoStrategy.metaDescription)} |`);
+    }
+    if (prd.seoStrategy.keywords && prd.seoStrategy.keywords.length > 0) {
+      seoLines.push(`| **Keywords** | ${escapeTableCell(prd.seoStrategy.keywords.join(", "))} |`);
+    }
+    if (prd.seoStrategy.indexingStrategy) {
+      seoLines.push(`| **Indexing Strategy** | ${escapeTableCell(prd.seoStrategy.indexingStrategy)} |`);
+    }
+    if (prd.seoStrategy.openGraph) {
+      if (prd.seoStrategy.openGraph.title) {
+        seoLines.push(`| **OpenGraph Title** | ${escapeTableCell(prd.seoStrategy.openGraph.title)} |`);
+      }
+      if (prd.seoStrategy.openGraph.description) {
+        seoLines.push(`| **OpenGraph Description** | ${escapeTableCell(prd.seoStrategy.openGraph.description)} |`);
+      }
+      if (prd.seoStrategy.openGraph.image) {
+        seoLines.push(`| **OpenGraph Image** | ${escapeTableCell(prd.seoStrategy.openGraph.image)} |`);
+      }
+    }
+    sections.push(seoLines.join("\n"));
+  }
+
+  // 15. Metrik Keberhasilan
+  if (prd.successMetrics && prd.successMetrics.length > 0) {
+    const metricLines: string[] = [`## 15. Metrik Keberhasilan (Success Metrics)`];
+    metricLines.push(`| No | Metrik (KPI) | Target | Metode Pengukuran |`);
+    metricLines.push(`|:---:|:---|:---|:---|`);
+    prd.successMetrics.forEach((sm, idx) => {
+      metricLines.push(`| ${idx + 1} | ${escapeTableCell(sm.metric)} | ${escapeTableCell(sm.target)} | ${escapeTableCell(sm.measurementMethod || "-")} |`);
+    });
+    sections.push(metricLines.join("\n"));
   }
 
   return sections.join("\n\n");

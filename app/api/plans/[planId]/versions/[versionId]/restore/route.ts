@@ -8,7 +8,7 @@ interface RouteParams {
   params: Promise<{ planId: string; versionId: string }>;
 }
 
-export async function POST(req: NextRequest, { params }: RouteParams) {
+export async function POST(_req: NextRequest, { params }: RouteParams) {
   try {
     const session = await auth();
     if (!session?.user?.id) {

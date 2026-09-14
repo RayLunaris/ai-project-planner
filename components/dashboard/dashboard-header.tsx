@@ -2,7 +2,7 @@
 
 import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import { LogOut, Sparkles, User as UserIcon } from "lucide-react";
+import { LogOut, Sparkles, User as UserIcon, Settings } from "lucide-react";
 import Link from "next/link";
 
 import Image from "next/image";
@@ -48,6 +48,13 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
                   {user.name || user.email}
                 </span>
               </div>
+              <Link
+                href="/settings"
+                className="inline-flex items-center justify-center h-8 w-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition"
+                title="Settings"
+              >
+                <Settings className="h-4 w-4" />
+              </Link>
               <Button
                 variant="ghost"
                 size="sm"

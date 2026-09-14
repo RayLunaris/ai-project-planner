@@ -17,6 +17,7 @@ import {
   PrdContentJson,
 } from "@/lib/prompts/prd-generation";
 import { renderPrdToMarkdown } from "@/lib/markdown/renderer";
+import { extractJson } from "@/lib/utils";
 
 interface RouteParams {
   params: Promise<{ planId: string }>;
@@ -24,18 +25,8 @@ interface RouteParams {
 
 export const maxDuration = 60;
 
-function extractJson(raw: string): unknown {
-  let text = raw.trim();
-  if (text.startsWith("```")) {
-    text = text
-      .replace(/^```(?:json)?\s*\n?/, "")
-      .replace(/\n?```$/, "")
-      .trim();
-  }
-  return JSON.parse(text);
-}
 
-export async function POST(req: NextRequest, { params }: RouteParams) {
+export async function POST(_req: NextRequest, { params }: RouteParams) {
   try {
     const session = await auth();
     if (!session?.user?.id) {

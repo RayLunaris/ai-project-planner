@@ -18,7 +18,7 @@ interface RouteParams {
 
 export const maxDuration = 60;
 
-export async function GET(req: NextRequest, { params }: RouteParams) {
+export async function GET(_req: NextRequest, { params }: RouteParams) {
   try {
     const session = await auth();
     if (!session?.user?.id) {

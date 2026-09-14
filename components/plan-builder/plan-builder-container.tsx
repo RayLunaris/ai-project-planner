@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, FileText, Layers } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ChatPanel, ClarificationItem } from "./chat-panel";
 import { PrdPreview } from "./prd-preview";
+import { ModelSelector } from "./model-selector";
+import { FeatureList } from "./feature-list";
 
 interface VersionItem {
   id: string;
@@ -23,6 +25,8 @@ interface PlanBuilderContainerProps {
   initialIdea: string;
   initialAnswers: ClarificationItem[];
   initialVersion: VersionItem | null;
+  initialSelectedProvider?: string | null;
+  initialSelectedModel?: string | null;
 }
 
 export function PlanBuilderContainer({
@@ -33,12 +37,15 @@ export function PlanBuilderContainer({
   initialIdea,
   initialAnswers,
   initialVersion,
+  initialSelectedProvider,
+  initialSelectedModel,
 }: PlanBuilderContainerProps) {
   const [status, setStatus] = useState(initialStatus);
   const [currentVersion, setCurrentVersion] = useState<VersionItem | null>(initialVersion);
   const [viewedVersion, setViewedVersion] = useState<VersionItem | null>(initialVersion);
   const [streamedText, setStreamedText] = useState("");
   const [isStreamingPrd, setIsStreamingPrd] = useState(false);
+  const [activeRightTab, setActiveRightTab] = useState<"prd" | "features">("prd");
 
   function handleStreamingChunk(chunk: string) {
     setIsStreamingPrd(true);
@@ -91,8 +98,14 @@ export function PlanBuilderContainer({
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Badge variant="outline" className="capitalize text-xs">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <ModelSelector
+            planId={planId}
+            initialProvider={initialSelectedProvider}
+            initialModel={initialSelectedModel}
+          />
+          <div className="h-4 w-px bg-border/60 hidden md:block" />
+          <Badge variant="outline" className="capitalize text-xs hidden sm:inline-flex">
             Status: {status}
           </Badge>
           {currentVersion && (
@@ -118,19 +131,56 @@ export function PlanBuilderContainer({
           />
         </div>
 
-        {/* Right Column: PRD Preview Panel */}
-        <div className="lg:col-span-7 h-full overflow-hidden">
-          <PrdPreview
-            planId={planId}
-            markdown={viewedVersion?.contentMarkdown || currentVersion?.contentMarkdown || null}
-            streamingText={streamedText}
-            isStreaming={isStreamingPrd}
-            versionNumber={viewedVersion?.versionNumber || currentVersion?.versionNumber}
-            currentVersionId={currentVersion?.id || null}
-            activeVersionId={viewedVersion?.id || currentVersion?.id || null}
-            onSelectVersion={handleSelectVersion}
-            onVersionRestored={handleVersionRestored}
-          />
+        {/* Right Column: PRD Preview Panel or Feature List */}
+        <div className="lg:col-span-7 h-full flex flex-col min-h-0 overflow-hidden">
+          {/* Tab Navigation */}
+          <div className="flex items-center gap-1 mb-2.5 shrink-0 bg-muted/40 p-1 rounded-lg border border-border/40 w-fit">
+            <button
+              type="button"
+              onClick={() => setActiveRightTab("prd")}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition cursor-pointer ${
+                activeRightTab === "prd"
+                  ? "bg-background text-foreground shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <FileText className="h-3.5 w-3.5" />
+              Dokumen PRD
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveRightTab("features")}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-medium transition cursor-pointer ${
+                activeRightTab === "features"
+                  ? "bg-background text-foreground shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Layers className="h-3.5 w-3.5" />
+              Features
+            </button>
+          </div>
+
+          <div className="flex-1 min-h-0 overflow-hidden">
+            {activeRightTab === "prd" ? (
+              <PrdPreview
+                planId={planId}
+                markdown={viewedVersion?.contentMarkdown || currentVersion?.contentMarkdown || null}
+                streamingText={streamedText}
+                isStreaming={isStreamingPrd}
+                versionNumber={viewedVersion?.versionNumber || currentVersion?.versionNumber}
+                currentVersionId={currentVersion?.id || null}
+                activeVersionId={viewedVersion?.id || currentVersion?.id || null}
+                onSelectVersion={handleSelectVersion}
+                onVersionRestored={handleVersionRestored}
+              />
+            ) : (
+              <FeatureList
+                planId={planId}
+                hasPrd={Boolean(currentVersion)}
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>

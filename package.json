@@ -13,8 +13,7 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
-    "@tailwindcss/typography": "^0.5.20",
-    "ai": "^7.0.93",
+    "@google/generative-ai": "^0.24.1",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.2.5",
     "drizzle-orm": "^0.45.2",
@@ -36,10 +35,17 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^17.4.2",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "15.5.25",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "allowScripts": {
+    "esbuild@0.18.20": true,
+    "esbuild@0.25.12": true,
+    "esbuild@0.28.2": true,
+    "unrs-resolver@1.12.2": true
   }
 }
